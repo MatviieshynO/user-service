@@ -9,4 +9,9 @@ export default (): ConfigType => ({
   ),
   ELASTICSEARCH_ENABLED: process.env.ELASTICSEARCH_ENABLED === 'true',
   LOG_TO_FILE: process.env.LOG_TO_FILE === 'true',
+
+  POSTGRES_USER: String(process.env.POSTGRES_USER),
+  POSTGRES_PASSWORD: String(process.env.POSTGRES_PASSWORD),
+  POSTGRES_DB: String(process.env.POSTGRES_DB),
+  DATABASE_URL: String(process.env.DATABASE_URL),
 });
