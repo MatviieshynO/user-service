@@ -54,7 +54,7 @@ export class LoggerService implements NestLoggerService {
     trace?: string,
   ) {
     const logData = {
-      '@timestamp': new Date().toISOString(), // ✅ ОБОВ'ЯЗКОВО ДОДАЄМО @timestamp
+      '@timestamp': new Date().toISOString(),
       level: level,
       message: message,
       context: context || 'Application',

@@ -13,7 +13,7 @@ export class PrismaService
 
   async onModuleInit(): Promise<void> {
     await this.$connect();
-    this.logger.log(' Connected to the database', 'PrismaService');
+    this.logger.log('The database has started successfully.', 'PrismaService');
   }
 
   async onModuleDestroy(): Promise<void> {

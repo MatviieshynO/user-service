@@ -9,10 +9,11 @@ async function bootstrap() {
   const logger = app.get(LoggerService);
 
   const port = configService.get('PORT');
-  const dasd = configService.get('LOG_TO_FILE');
-  console.log(dasd, 'dsad');
 
-  logger.log(`Application is starting on port: ${port}`, 'bootstrap');
+  logger.log(
+    `The server has started successfully on port: ${port}`,
+    'bootstrap',
+  );
 
   await app.listen(port);
 }
