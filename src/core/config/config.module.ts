@@ -7,6 +7,7 @@ import { ConfigService } from './config.service';
 @Module({
   imports: [
     NestConfigModule.forRoot({
+      isGlobal: true,
       load: [config],
       validationSchema: configSchema,
     }),

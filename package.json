@@ -20,8 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "docker:elastic:start": "docker-compose --profile elastic up -d",
     "docker:elastic:stop": "docker-compose --profile elastic down",
-    "docker:postgres:start": "docker-compose --profile postgres up -d",
-    "docker:postgres:stop": "docker-compose --profile postgres down"
+    "docker:postgres:start": "docker-compose --profile database up -d",
+    "docker:postgres:stop": "docker-compose --profile database down"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.1",
@@ -32,6 +32,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^6.4.1",
     "bcrypt": "^5.1.1",
+    "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "joi": "^17.13.3",
     "nodemailer": "^6.10.0",

@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,53 +8,52 @@ datasource db {
 }
 
 model User {
-  id             Int      @id @default(autoincrement())
-  name           String   @default("")            
-  email          String?  @unique                
-  phone          String?  @unique                
-  password       String                            
-  role           UserRole @default(USER)          
-  isActive       Boolean  @default(true)        
-  isVerified     Boolean  @default(false)   
-  avatar         String?        
-  settings       Json     @default("{}")   
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                Int                @id @default(autoincrement())
+  name              String             @default("")
+  email             String?            @unique
+  phone             String?            @unique
+  password          String
+  role              UserRole           @default(USER)
+  isActive          Boolean            @default(true)
+  isVerified        Boolean            @default(false)
+  avatar            String?
+  settings          Json               @default("{}")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  logs              Log[]
+  sessions          Session[]
   verificationCodes VerificationCode[]
-  sessions       Session[]
-  logs           Log[]
 }
 
 model Session {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  refreshToken String  @unique               
-  createdAt   DateTime @default(now())       
-  expiresAt   DateTime                        
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  refreshToken String   @unique
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 model VerificationCode {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  type        VerificationType        
-  code        String                    
-  createdAt   DateTime @default(now())  
-  expiresAt   DateTime                  
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  type      VerificationType
+  code      String
+  createdAt DateTime         @default(now())
+  expiresAt DateTime
+  user      User             @relation(fields: [userId], references: [id])
 
-  @@unique([userId, type])             
+  @@unique([userId, type])
 }
 
-
 model Log {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  action      String
-  ipAddress   String 
-  userAgent   String
-  createdAt   DateTime @default(now()) 
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String
+  ipAddress String
+  userAgent String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 enum VerificationType {

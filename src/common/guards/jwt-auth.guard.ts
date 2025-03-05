@@ -7,19 +7,17 @@ import {
 import { Request } from 'express';
 import { ConfigService } from '../../core/config/config.service';
 import { JwtService } from '../../core/jwt/jwt.service';
-import { LoggerService } from '../../core/logger/logger.service';
-import { JwtPayload } from './guards.interfaces';
+import { RequestWithUser } from '../../types/request-with-user.interface';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    private readonly logger: LoggerService,
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<Request & { user?: JwtPayload }>();
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {

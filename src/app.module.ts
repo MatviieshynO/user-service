@@ -5,6 +5,7 @@ import { JwtModule } from './core/jwt/jwt.module';
 import { LoggerModule } from './core/logger/logger.module';
 import { MailModule } from './core/mail/mail.module';
 import { PrismaModule } from './core/prisma/prisma.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { PrismaModule } from './core/prisma/prisma.module';
     GuardsModule,
     JwtModule,
     MailModule,
+    UserModule,
   ],
 })
 export class AppModule {}
