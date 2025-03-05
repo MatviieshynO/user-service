@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -14,9 +9,62 @@ datasource db {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  name     String
-  email    String   @unique
-  password String
-  createdAt DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  name           String   @default("")            
+  email          String?  @unique                
+  phone          String?  @unique                
+  password       String                            
+  role           UserRole @default(USER)          
+  isActive       Boolean  @default(true)        
+  isVerified     Boolean  @default(false)   
+  avatar         String?        
+  settings       Json     @default("{}")   
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  verificationCodes VerificationCode[]
+  sessions       Session[]
+  logs           Log[]
+}
+
+model Session {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  refreshToken String  @unique               
+  createdAt   DateTime @default(now())       
+  expiresAt   DateTime                        
+}
+
+model VerificationCode {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  type        VerificationType        
+  code        String                    
+  createdAt   DateTime @default(now())  
+  expiresAt   DateTime                  
+
+  @@unique([userId, type])             
+}
+
+
+model Log {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  action      String
+  ipAddress   String 
+  userAgent   String
+  createdAt   DateTime @default(now()) 
+}
+
+enum VerificationType {
+  EMAIL
+  PHONE
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  USER
 }

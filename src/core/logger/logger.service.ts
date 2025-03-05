@@ -13,7 +13,7 @@ export class LoggerService implements NestLoggerService {
 
   constructor(private readonly configService: ConfigService) {
     this.logLevel = this.configService.get('LOG_LEVEL');
-    this.logFilePath = path.join(__dirname, '../../logs/app.log');
+    this.logFilePath = path.join(__dirname, '../../..//logs/app.log');
     this.logToFile = this.configService.get('LOG_TO_FILE');
 
     if (this.configService.get('ELASTICSEARCH_ENABLED')) {
