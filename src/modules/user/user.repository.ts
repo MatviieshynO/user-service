@@ -55,4 +55,27 @@ export class UserRepository {
         throw new NotFoundException(`User with ID ${id} not found`);
       });
   }
+
+  async deleteUser(id: number) {
+    return await this.prismaService.user
+      .delete({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+          isActive: true,
+          isVerified: true,
+          avatar: true,
+          settings: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
+      .catch(() => {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      });
+  }
 }

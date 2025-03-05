@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { RequestWithUser } from '../../types/request-with-user.interface';
 import { UpdateUserNameDto } from './dto/updateUserName.dto';
 import { UpdateUserPasswordDto } from './dto/updateUserPassword.dto';
@@ -17,6 +19,8 @@ export class UserController {
   }
 
   @Patch('me/name')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('USER')
   async updateUserName(
     @Req() req: RequestWithUser,
     @Body() body: UpdateUserNameDto,
@@ -25,6 +29,8 @@ export class UserController {
   }
 
   @Patch('me/password')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('USER')
   async updateUserPassword(
     @Req() req: RequestWithUser,
     @Body() body: UpdateUserPasswordDto,
@@ -34,5 +40,13 @@ export class UserController {
       body.password,
       body.passwordConfirm,
     );
+  }
+
+  @Delete('me')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('USER')
+  @UseGuards(JwtAuthGuard)
+  async deleteAccount(@Req() req: RequestWithUser): Promise<Omit<User, 'password'>> {
+    return await this.userService.deleteAccount(Number(req.user?.id));
   }
 }
