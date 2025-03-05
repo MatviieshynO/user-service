@@ -19,4 +19,11 @@ export default (): ConfigType => ({
   JWT_ACCESS_EXPIRES_IN: String(process.env.JWT_ACCESS_EXPIRES_IN),
   JWT_REFRESH_EXPIRES_IN: String(process.env.JWT_REFRESH_EXPIRES_IN),
   JWT_DEFAULT_SECRET: String(process.env.JWT_DEFAULT_SECRET),
+
+  SMTP_HOST: String(process.env.SMTP_HOST),
+  SMTP_PORT: String(process.env.SMTP_PORT),
+  SMTP_SECURE: String(process.env.SMTP_SECURE),
+  SMTP_USER: String(process.env.SMTP_USER),
+  SMTP_PASSWORD: String(process.env.SMTP_PASSWORD),
+  MAIL_FROM: String(process.env.MAIL_FROM),
 });

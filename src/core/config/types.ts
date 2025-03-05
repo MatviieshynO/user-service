@@ -16,4 +16,11 @@ export interface ConfigType {
   JWT_ACCESS_EXPIRES_IN: string;
   JWT_REFRESH_EXPIRES_IN: string;
   JWT_DEFAULT_SECRET: string;
+
+  SMTP_HOST: string;
+  SMTP_PORT: string;
+  SMTP_SECURE: string;
+  SMTP_USER: string;
+  SMTP_PASSWORD: string;
+  MAIL_FROM: string;
 }
