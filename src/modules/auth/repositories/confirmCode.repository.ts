@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { VerificationCode } from '@prisma/client';
-import { PrismaService } from '../../core/prisma/prisma.service';
+import { PrismaService } from '../../../core/prisma/prisma.service';
 
 @Injectable()
 export class ConfirmCodeRepository {

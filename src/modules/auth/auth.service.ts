@@ -1,16 +1,19 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { generateConfirmationCode } from '../../common/utils/generateConfirmationCode';
 import { ConfigService } from '../../core/config/config.service';
 import { HashService } from '../../core/hash/hash.service';
+import { JwtService } from '../../core/jwt/jwt.service';
 import { LoggerService } from '../../core/logger/logger.service';
 import { MailService } from '../../core/mail/mail.service';
 import { confirmationEmailTemplate } from '../../core/mail/templates/confirmationEmail';
 import { emailVerifiedTemplate } from '../../core/mail/templates/emailVerifiedTemplate';
 import { UserRepository } from '../user/user.repository';
-import { ConfirmCodeRepository } from './confirmCode.repository';
+import { LoginDto } from './dto/login.dto';
 import { RegisterUserDto } from './dto/registerUser.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ConfirmCodeRepository } from './repositories/confirmCode.repository';
+import { SessionRepository } from './repositories/session.repository';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +24,8 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly confirmCodeRepository: ConfirmCodeRepository,
     private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
+    private readonly sesionRepository: SessionRepository,
   ) {}
 
   async registerUser({
@@ -115,6 +120,61 @@ export class AuthService {
       return { message: 'Email successfully verified.' };
     } catch (error) {
       this.logger.error('Verify email is failed', error, 'verifyEmail');
+      throw error;
+    }
+  }
+
+  async login({
+    email,
+    password,
+  }: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
+    try {
+      // 1. Finding the user in the database
+      const user = await this.userRepository.getUserByEmail(email);
+
+      // 2. Checking if the email is verified
+      if (!user.isVerified) {
+        throw new BadRequestException('Email is not verified.');
+      }
+
+      // 3. Checking if the password is correct
+      const isPasswordValid = await this.hashService.comparePasswords(
+        password,
+        user.password,
+      );
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      // 4. Genering`accessToken` and `refreshToken`
+      const accessToken = this.jwtService.generateToken(
+        { id: String(user.id), email: String(user.email), role: String(user.role) },
+        this.configService.get('JWT_ACCESS_SECRET'),
+        this.configService.get('JWT_ACCESS_EXPIRES_IN'),
+      );
+      const refreshToken = this.jwtService.generateToken(
+        { id: String(user.id), email: String(user.email), role: String(user.role) },
+        this.configService.get('JWT_REFRESH_SECRET'),
+        this.configService.get('JWT_REFRESH_EXPIRES_IN'),
+      );
+
+      // 5. Decoding the token to check its expiration time
+      const decodedToken = this.jwtService.verifyToken(
+        refreshToken,
+        this.configService.get('JWT_REFRESH_SECRET'),
+      );
+      // 6. Before saving a new session, we delete all previous sessions.
+      await this.sesionRepository.deleteAllSessions(user.id);
+
+      // 7. Saving the session in the database
+      if (decodedToken.exp) {
+        const expiresAt = new Date(decodedToken.exp * 1000);
+        await this.sesionRepository.createSession(user.id, refreshToken, expiresAt);
+      }
+
+      return { accessToken, refreshToken };
+    } catch (error) {
+      this.logger.error('Login is failed', error, 'login');
       throw error;
     }
   }

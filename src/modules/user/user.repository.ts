@@ -34,6 +34,14 @@ export class UserRepository {
       });
   }
 
+  async getUserByEmail(email: string) {
+    return await this.prismaService.user
+      .findUniqueOrThrow({ where: { email } })
+      .catch(() => {
+        throw new NotFoundException(`User with Email ${email} not found`);
+      });
+  }
+
   async updateUser(
     identifier: number | string,
     updateData: Prisma.UserUpdateInput,
