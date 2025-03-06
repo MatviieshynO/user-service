@@ -23,4 +23,8 @@ export interface ConfigType {
   SMTP_USER: string;
   SMTP_PASSWORD: string;
   MAIL_FROM: string;
+
+  SALT_ROUNDS: number;
+
+  CODE_EXPIRATION_TIME: number;
 }

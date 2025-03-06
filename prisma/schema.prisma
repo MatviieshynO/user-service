@@ -36,14 +36,12 @@ model Session {
 
 model VerificationCode {
   id        Int              @id @default(autoincrement())
-  userId    Int
+  email     String           @unique
   type      VerificationType
   code      String
-  createdAt DateTime         @default(now())
   expiresAt DateTime
-  user      User             @relation(fields: [userId], references: [id])
-
-  @@unique([userId, type])
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [email], references: [email])
 }
 
 model Log {

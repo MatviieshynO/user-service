@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../../core/prisma/prisma.service';
 
@@ -56,7 +61,7 @@ export class UserRepository {
       });
   }
 
-  async deleteUser(id: number) {
+  async deleteUser(id: number): Promise<Omit<User, 'password'>> {
     return await this.prismaService.user
       .delete({
         where: { id },
@@ -76,6 +81,36 @@ export class UserRepository {
       })
       .catch(() => {
         throw new NotFoundException(`User with ID ${id} not found`);
+      });
+  }
+
+  async createUser(createData: Prisma.UserCreateInput): Promise<Omit<User, 'password'>> {
+    return await this.prismaService.user
+      .create({
+        data: { ...createData },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+          isActive: true,
+          isVerified: true,
+          avatar: true,
+          settings: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
+      .catch((error) => {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          throw new ConflictException('User with this email already exists');
+        }
+        console.log(error);
+        throw new InternalServerErrorException('Internal server error');
       });
   }
 }
