@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { GuardsModule } from './common/guards/guards.module';
 import { ConfigModule } from './core/config/config.module';
+import { CronModule } from './core/cron/cron.module';
 import { HashModule } from './core/hash/hash.module';
 import { JwtModule } from './core/jwt/jwt.module';
 import { LoggerModule } from './core/logger/logger.module';
@@ -20,6 +21,7 @@ import { UserModule } from './modules/user/user.module';
     UserModule,
     AuthModule,
     HashModule,
+    CronModule,
   ],
 })
 export class AppModule {}

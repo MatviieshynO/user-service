@@ -18,7 +18,6 @@ export class ConfirmCodeRepository {
       create: { email, code, expiresAt, type },
     });
 
-    console.log('Saved Code:', savedCode);
     return savedCode;
   }
 }
