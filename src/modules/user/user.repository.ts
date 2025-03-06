@@ -35,12 +35,13 @@ export class UserRepository {
   }
 
   async updateUser(
-    id: number,
+    identifier: number | string,
     updateData: Prisma.UserUpdateInput,
   ): Promise<Omit<User, 'password'>> {
     return await this.prismaService.user
       .update({
-        where: { id },
+        where:
+          typeof identifier === 'number' ? { id: identifier } : { email: identifier },
         data: updateData,
         select: {
           id: true,
@@ -57,7 +58,7 @@ export class UserRepository {
         },
       })
       .catch(() => {
-        throw new NotFoundException(`User with ID ${id} not found`);
+        throw new NotFoundException(`User with ID/Email ${identifier} not found`);
       });
   }
 

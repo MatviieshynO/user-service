@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { VerificationCode } from '@prisma/client';
 import { PrismaService } from '../../core/prisma/prisma.service';
 
@@ -19,5 +19,23 @@ export class ConfirmCodeRepository {
     });
 
     return savedCode;
+  }
+
+  async findByEmail(email: string) {
+    return await this.prismaService.verificationCode
+      .findUniqueOrThrow({
+        where: { email },
+      })
+      .catch(() => {
+        throw new NotFoundException('Verification code not found.');
+      });
+  }
+
+  async deleteByEmail(email: string) {
+    return await this.prismaService.verificationCode
+      .delete({ where: { email } })
+      .catch(() => {
+        throw new NotFoundException('Verification code not found.');
+      });
   }
 }
