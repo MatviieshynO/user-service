@@ -27,4 +27,7 @@ export interface ConfigType {
   SALT_ROUNDS: number;
 
   CODE_EXPIRATION_TIME: number;
+
+  REDIS_PASSWORD: string;
+  REDIS_URL: string;
 }

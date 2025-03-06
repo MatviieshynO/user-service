@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { GuardsModule } from '../../common/guards/guards.module';
 import { ConfigModule } from '../../core/config/config.module';
 import { ConfirmCodeCleanupService } from '../../core/cron/confirm-code-cleanup.service';
 import { HashModule } from '../../core/hash/hash.module';
@@ -12,7 +13,15 @@ import { ConfirmCodeRepository } from './repositories/confirmCode.repository';
 import { SessionRepository } from './repositories/session.repository';
 
 @Module({
-  imports: [UserModule, LoggerModule, HashModule, MailModule, ConfigModule, JwtModule],
+  imports: [
+    UserModule,
+    LoggerModule,
+    HashModule,
+    MailModule,
+    ConfigModule,
+    JwtModule,
+    GuardsModule,
+  ],
   controllers: [AuthController],
   providers: [
     AuthService,

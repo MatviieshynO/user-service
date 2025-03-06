@@ -7,6 +7,7 @@ import { JwtModule } from './core/jwt/jwt.module';
 import { LoggerModule } from './core/logger/logger.module';
 import { MailModule } from './core/mail/mail.module';
 import { PrismaModule } from './core/prisma/prisma.module';
+import { RedisModule } from './core/redis/redis.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 
@@ -22,6 +23,7 @@ import { UserModule } from './modules/user/user.module';
     AuthModule,
     HashModule,
     CronModule,
+    RedisModule,
   ],
 })
 export class AppModule {}

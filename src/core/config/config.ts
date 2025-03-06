@@ -28,4 +28,7 @@ export default (): ConfigType => ({
   SALT_ROUNDS: Number(process.env.SALT_ROUNDS),
 
   CODE_EXPIRATION_TIME: Number(process.env.CODE_EXPIRATION_TIME),
+
+  REDIS_PASSWORD: String(process.env.REDIS_PASSWORD),
+  REDIS_URL: String(process.env.REDIS_URL),
 });

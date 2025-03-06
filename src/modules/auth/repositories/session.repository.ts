@@ -15,7 +15,7 @@ export class SessionRepository {
       data: { userId, refreshToken, expiresAt },
     });
   }
-  async deleteAllSessions(userId: number) {
+  async deleteAllSessions(userId: number): Promise<{ count: number }> {
     return await this.prismaService.session.deleteMany({ where: { userId } });
   }
 }

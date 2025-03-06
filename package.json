@@ -21,7 +21,9 @@
     "docker:elastic:start": "docker-compose --profile elastic up -d",
     "docker:elastic:stop": "docker-compose --profile elastic down",
     "docker:postgres:start": "docker-compose --profile database up -d",
-    "docker:postgres:stop": "docker-compose --profile database down"
+    "docker:postgres:stop": "docker-compose --profile database down",
+    "docker:redis:start": "docker-compose --profile cache up -d",
+    "docker:redis:stop": "docker-compose --profile cache down"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.1",
@@ -37,6 +39,7 @@
     "class-validator": "^0.14.1",
     "joi": "^17.13.3",
     "nodemailer": "^6.10.0",
+    "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
