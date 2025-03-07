@@ -6,4 +6,5 @@ export interface RequestWithUser extends Request {
     email: string;
     role: string;
   };
+  accessToken: string;
 }

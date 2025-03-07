@@ -8,6 +8,7 @@ import { LoggerService } from '../../core/logger/logger.service';
 import { MailService } from '../../core/mail/mail.service';
 import { confirmationEmailTemplate } from '../../core/mail/templates/confirmationEmail';
 import { emailVerifiedTemplate } from '../../core/mail/templates/emailVerifiedTemplate';
+import { RedisService } from '../../core/redis/redis.service';
 import { UserRepository } from '../user/user.repository';
 import { LoginDto } from './dto/login.dto';
 import { RegisterUserDto } from './dto/registerUser.dto';
@@ -26,6 +27,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly sesionRepository: SessionRepository,
+    private readonly redisService: RedisService,
   ) {}
 
   async registerUser({
@@ -171,8 +173,28 @@ export class AuthService {
         const expiresAt = new Date(decodedToken.exp * 1000);
         await this.sesionRepository.createSession(user.id, refreshToken, expiresAt);
       }
-
       return { accessToken, refreshToken };
+    } catch (error) {
+      this.logger.error('Login is failed', error, 'login');
+      throw error;
+    }
+  }
+
+  async logout(userId: number, accessToken: string) {
+    try {
+      // 1. Decoding the token to get the exp (expiration time).
+      const payload = this.jwtService.verifyToken(
+        accessToken,
+        this.configService.get('JWT_ACCESS_SECRET'),
+      );
+
+      // 2. Deleting all sessions.
+      await this.sesionRepository.deleteAllSessions(userId);
+
+      // 3. Adding the revoked token to the blacklist and setting the expiration time.
+      await this.redisService.addToBlacklist(accessToken, Number(payload.exp));
+
+      return { message: 'Logged out successfully' };
     } catch (error) {
       this.logger.error('Login is failed', error, 'login');
       throw error;

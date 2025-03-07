@@ -23,24 +23,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Connected to Redis');
   }
 
-  async set(key: string, value: string, ttl?: number) {
-    if (ttl) {
-      await this.client.set(key, value, { EX: ttl });
-    } else {
-      await this.client.set(key, value);
-    }
+  async isTokenBlacklisted(token: string): Promise<boolean> {
+    const result = await this.client.get(`blacklist:${token}`);
+    return result !== null;
   }
 
-  async get(key: string): Promise<string | null> {
-    return await this.client.get(key);
-  }
-
-  async exists(key: string): Promise<boolean> {
-    return (await this.client.exists(key)) === 1;
-  }
-
-  async delete(key: string) {
-    await this.client.del(key);
+  async addToBlacklist(token: string, expiresIn: number): Promise<void> {
+    await this.client.set(`blacklist:${token}`, 'true', { EX: expiresIn });
   }
 
   async onModuleDestroy() {

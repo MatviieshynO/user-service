@@ -1,5 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RequestWithUser } from '../../types/request-with-user.interface';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterUserDto } from './dto/registerUser.dto';
@@ -24,5 +26,11 @@ export class AuthController {
     @Body() body: LoginDto,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     return await this.authService.login(body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(@Req() req: RequestWithUser): Promise<{ message: string }> {
+    return await this.authService.logout(Number(req.user?.id), req.accessToken);
   }
 }
