@@ -1,9 +1,10 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RequestWithUser } from '../../types/request-with-user.interface';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokensDto } from './dto/refreshTokens.dto';
 import { RegisterUserDto } from './dto/registerUser.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 
@@ -29,8 +30,15 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('logout')
+  @Get('logout')
   async logout(@Req() req: RequestWithUser): Promise<{ message: string }> {
     return await this.authService.logout(Number(req.user?.id), req.accessToken);
+  }
+
+  @Post('refresh')
+  async refreshTokens(
+    @Body() body: RefreshTokensDto,
+  ): Promise<{ newAccessToken: string; newRefreshToken: string }> {
+    return await this.authService.refreshToken(body);
   }
 }

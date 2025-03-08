@@ -29,7 +29,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async addToBlacklist(token: string, expiresIn: number): Promise<void> {
-    await this.client.set(`blacklist:${token}`, 'true', { EX: expiresIn });
+    if (expiresIn > 0) {
+      await this.client.set(`blacklist:${token}`, 'true', { EX: expiresIn });
+    }
   }
 
   async onModuleDestroy() {

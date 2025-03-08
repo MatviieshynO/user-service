@@ -18,4 +18,10 @@ export class SessionRepository {
   async deleteAllSessions(userId: number): Promise<{ count: number }> {
     return await this.prismaService.session.deleteMany({ where: { userId } });
   }
+
+  async findSessionByUserId(userId: number) {
+    return await this.prismaService.session.findFirst({
+      where: { userId },
+    });
+  }
 }

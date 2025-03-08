@@ -11,6 +11,7 @@ import { emailVerifiedTemplate } from '../../core/mail/templates/emailVerifiedTe
 import { RedisService } from '../../core/redis/redis.service';
 import { UserRepository } from '../user/user.repository';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokensDto } from './dto/refreshTokens.dto';
 import { RegisterUserDto } from './dto/registerUser.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ConfirmCodeRepository } from './repositories/confirmCode.repository';
@@ -134,12 +135,18 @@ export class AuthService {
       // 1. Finding the user in the database
       const user = await this.userRepository.getUserByEmail(email);
 
-      // 2. Checking if the email is verified
+      // 2 Checking if the user has an active session.
+      const activeSession = await this.sesionRepository.findSessionByUserId(user.id);
+      if (activeSession) {
+        throw new BadRequestException('You are already logged in. Please log out first.');
+      }
+
+      // 3. Checking if the email is verified
       if (!user.isVerified) {
         throw new BadRequestException('Email is not verified.');
       }
 
-      // 3. Checking if the password is correct
+      // 4. Checking if the password is correct
       const isPasswordValid = await this.hashService.comparePasswords(
         password,
         user.password,
@@ -148,7 +155,7 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
-      // 4. Genering`accessToken` and `refreshToken`
+      // 5. Genering`accessToken` and `refreshToken`
       const accessToken = this.jwtService.generateToken(
         { id: String(user.id), email: String(user.email), role: String(user.role) },
         this.configService.get('JWT_ACCESS_SECRET'),
@@ -160,15 +167,15 @@ export class AuthService {
         this.configService.get('JWT_REFRESH_EXPIRES_IN'),
       );
 
-      // 5. Decoding the token to check its expiration time
+      // 6. Decoding the token to check its expiration time
       const decodedToken = this.jwtService.verifyToken(
         refreshToken,
         this.configService.get('JWT_REFRESH_SECRET'),
       );
-      // 6. Before saving a new session, we delete all previous sessions.
+      // 7. Before saving a new session, we delete all previous sessions.
       await this.sesionRepository.deleteAllSessions(user.id);
 
-      // 7. Saving the session in the database
+      // 8. Saving the session in the database
       if (decodedToken.exp) {
         const expiresAt = new Date(decodedToken.exp * 1000);
         await this.sesionRepository.createSession(user.id, refreshToken, expiresAt);
@@ -188,15 +195,88 @@ export class AuthService {
         this.configService.get('JWT_ACCESS_SECRET'),
       );
 
+      // Переконуємось, що payload існує і має exp
+      if (!payload || typeof payload.exp !== 'number') {
+        throw new UnauthorizedException('Invalid token: missing exp field');
+      }
+
       // 2. Deleting all sessions.
       await this.sesionRepository.deleteAllSessions(userId);
 
-      // 3. Adding the revoked token to the blacklist and setting the expiration time.
-      await this.redisService.addToBlacklist(accessToken, Number(payload.exp));
+      // 3. Calculating time until expiration (TTL)
+      const now = Math.floor(Date.now() / 1000); // Поточний час у секундах
+      const expiresIn = Math.max(payload.exp - now, 0); // TTL у секундах
+
+      // 4. Adding the revoked token to the blacklist with the correct TTL.
+      await this.redisService.addToBlacklist(accessToken, expiresIn);
 
       return { message: 'Logged out successfully' };
     } catch (error) {
-      this.logger.error('Login is failed', error, 'login');
+      this.logger.error('Logout failed', error, 'logout');
+      throw error;
+    }
+  }
+
+  async refreshToken({
+    refreshToken,
+    accessToken,
+  }: RefreshTokensDto): Promise<{ newAccessToken: string; newRefreshToken: string }> {
+    try {
+      // 1. If the accessToken is still valid, return an error.
+      const isValidAccessToken = this.jwtService.isValidToken(
+        accessToken,
+        this.configService.get('JWT_ACCESS_SECRET'),
+      );
+      if (isValidAccessToken) {
+        throw new BadRequestException('Access token is still valid');
+      }
+
+      // 2. Check refreshToken
+      const payload = this.jwtService.verifyToken(
+        refreshToken,
+        this.configService.get('JWT_REFRESH_SECRET'),
+      );
+
+      // 3. Checking if such a token exists in the database
+      const session = await this.sesionRepository.findSessionByUserId(Number(payload.id));
+      if (!session || refreshToken !== session.refreshToken) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      // 4 Get current user
+      const user = await this.userRepository.getUserById(Number(payload.id));
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // 5 Delete all session
+      await this.sesionRepository.deleteAllSessions(user.id);
+
+      // 6. Genering new accessToken and refreshToken
+      const newAccessToken = this.jwtService.generateToken(
+        { id: String(user.id), email: String(user.email), role: String(user.role) },
+        this.configService.get('JWT_ACCESS_SECRET'),
+        this.configService.get('JWT_ACCESS_EXPIRES_IN'),
+      );
+      const newRefreshToken = this.jwtService.generateToken(
+        { id: String(user.id), email: String(user.email), role: String(user.role) },
+        this.configService.get('JWT_REFRESH_SECRET'),
+        this.configService.get('JWT_REFRESH_EXPIRES_IN'),
+      );
+
+      // 7. Saving new session to database
+      const decodedToken = this.jwtService.verifyToken(
+        newRefreshToken,
+        this.configService.get('JWT_REFRESH_SECRET'),
+      );
+      if (decodedToken.exp) {
+        const expiresAt = new Date(decodedToken.exp * 1000);
+        await this.sesionRepository.createSession(user.id, newRefreshToken, expiresAt);
+      }
+
+      return { newAccessToken, newRefreshToken };
+    } catch (error) {
+      this.logger.error('Logout failed', error, 'logout');
       throw error;
     }
   }

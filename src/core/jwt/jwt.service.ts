@@ -25,7 +25,11 @@ export class JwtService {
   verifyToken(token: string, secret: string): JwtPayload {
     try {
       const secretKey = secret ?? this.configService.get('JWT_DEFAULT_SECRET');
-      return this.jwtService.verify(token, { secret: secretKey });
+      const payload: JwtPayload = this.jwtService.verify(token, { secret: secretKey });
+      if (payload) {
+        return payload;
+      }
+      throw new UnauthorizedException('Invalid JWT token');
     } catch (error: unknown) {
       if (error instanceof TokenExpiredError) {
         this.logger.warn('Token has expired', 'JwtService');
@@ -44,6 +48,15 @@ export class JwtService {
         );
         throw new UnauthorizedException('Invalid JWT token');
       }
+    }
+  }
+  isValidToken(token: string, secret: string): boolean {
+    try {
+      this.jwtService.verify(token, { secret });
+      return true;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      return false;
     }
   }
 }
